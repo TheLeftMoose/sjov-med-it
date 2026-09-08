@@ -38,6 +38,10 @@ Record interruptions, retries, errors, or deviations from the documented
 procedure. Also record whether the harness acted between prompts. Write `None`
 if the run completed normally.
 
+## Turn 1 prompt
+
+> lav en arduino kode der blinker en diode på pin 13, maks en linje kode og den skal blinke med 1 sekund tændt og 1 sekund slukket.
+
 ## Turn 1 metrics
 
 | Metric | Value |
@@ -53,6 +57,10 @@ if the run completed normally.
 ## Turn 1 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 2 prompt
+
+> nu uden delays
 
 ## Turn 2 metrics
 
@@ -70,6 +78,10 @@ if the run completed normally.
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 3 prompt
+
+> og uden millis
+
 ## Turn 3 metrics
 
 | Metric | Value |
@@ -85,6 +97,10 @@ if the run completed normally.
 ## Turn 3 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 4 prompt
+
+> og uden timer
 
 ## Turn 4 metrics
 
@@ -102,6 +118,10 @@ if the run completed normally.
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 5 prompt
+
+> det er også godt med en omtrent et sekund. Det vigtigte er logikken med "!digitalRead" som jeg skulle se om du kunne. Men hvad med når der kommer en anden kode med ind
+
 ## Turn 5 metrics
 
 | Metric | Value |
@@ -118,6 +138,10 @@ if the run completed normally.
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 6 prompt
+
+> og nu uden variabler tak
+
 ## Turn 6 metrics
 
 | Metric | Value |
@@ -133,6 +157,10 @@ if the run completed normally.
 ## Turn 6 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 7 prompt
+
+> jeg har lavet det og det virker. men du skal tænke matematik med. Modulus og så siger jeg ikke mere
 
 ## Turn 7 metrics
 

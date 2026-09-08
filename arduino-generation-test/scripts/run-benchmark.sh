@@ -388,6 +388,10 @@ for turn in {1..7}; do
   fi
 
   {
+    printf '\n## Turn %s prompt\n\n' "$turn"
+    while IFS= read -r prompt_line || [[ -n $prompt_line ]]; do
+      printf '> %s\n' "$prompt_line"
+    done <"$prompt_directory/turn-$turn.txt"
     printf '\n## Turn %s metrics\n\n' "$turn"
     printf '| Metric | Value |\n'
     printf '| --- | ---: |\n'

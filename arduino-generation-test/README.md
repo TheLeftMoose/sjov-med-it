@@ -163,8 +163,10 @@ result name without making model calls:
 ```
 
 The script reads all prompts from `task.md`, runs them in order in one session,
-and creates the correctly named result file. If a turn fails, it preserves the
-responses collected so far in a `.partial.md` file.
+and creates the correctly named result file. Each turn includes the exact
+submitted prompt, its metrics, and the untouched response, so the result can be
+read independently of `task.md`. If a turn fails, the script preserves the
+content collected so far in a `.partial.md` file.
 
 Each turn records:
 
