@@ -166,6 +166,18 @@ The script reads all prompts from `task.md`, runs them in order in one session,
 and creates the correctly named result file. If a turn fails, it preserves the
 responses collected so far in a `.partial.md` file.
 
+Each turn records:
+
+- Wall-clock duration measured by the runner.
+- CLI-reported duration when available.
+- Input, output, cache-read, and cache-write tokens when reported.
+- Reported cost when available.
+
+The runner does not estimate missing usage. Unsupported or absent values are
+recorded as `Unknown`. Wall-clock duration includes local CLI and network
+overhead, while CLI-reported duration and token accounting follow the selected
+harness's own definitions.
+
 For every model process, the runner removes forwarded host tokens, Git
 credential helpers, and SSH agent sockets. It also disables custom
 instructions, tools, MCP servers, plugins, skills, IDE integration, memory,

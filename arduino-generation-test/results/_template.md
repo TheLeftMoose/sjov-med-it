@@ -38,29 +38,113 @@ Record interruptions, retries, errors, or deviations from the documented
 procedure. Also record whether the harness acted between prompts. Write `None`
 if the run completed normally.
 
+## Turn 1 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
+
 ## Turn 1 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 2 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
 
 ## Turn 2 response
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 3 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
+
 ## Turn 3 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 4 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
 
 ## Turn 4 response
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 5 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
+
 ## Turn 5 response
 
 <!-- Paste the complete, unchanged response below. -->
 
+## Turn 6 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
+
 ## Turn 6 response
 
 <!-- Paste the complete, unchanged response below. -->
+
+## Turn 7 metrics
+
+| Metric | Value |
+| --- | ---: |
+| Wall-clock duration | Unknown |
+| CLI-reported duration | Unknown |
+| Input tokens | Unknown |
+| Output tokens | Unknown |
+| Cache-read tokens | Unknown |
+| Cache-write tokens | Unknown |
+| Cost (USD) | Unknown |
 
 ## Turn 7 response
 

@@ -166,6 +166,7 @@ for turn in {1..7}; do
 done
 
 harness_version=$("$executable" --version | head -n 1)
+run_started_ms=$(date +%s%3N)
 
 if [[ $dry_run == true ]]; then
   echo "Harness: $harness_name"
@@ -240,6 +241,7 @@ run_sanitized() {
 
 run_copilot_turn() {
   local prompt=$1
+  local usage_path=$2
 
   run_sanitized copilot \
     --prompt "$prompt" \
@@ -256,12 +258,14 @@ run_copilot_turn() {
     --no-auto-update \
     --no-remote \
     --no-remote-export \
+    --usage-output-file "$usage_path" \
     --stream off
 }
 
 run_claude_turn() {
   local turn=$1
   local prompt=$2
+  local usage_path=$3
   local -a session_arguments
 
   if [[ $turn -eq 1 ]]; then
@@ -284,8 +288,47 @@ run_claude_turn() {
     --permission-mode dontAsk \
     --permission-prompts none \
     --no-chrome \
-    --output-format text \
-    "$prompt"
+    --output-format json \
+    "$prompt" >"$usage_path"
+}
+
+json_sum() {
+  local path=$1
+  local key_pattern=$2
+
+  if [[ ! -s $path ]]; then
+    printf 'Unknown'
+    return
+  fi
+
+  jq -r --arg pattern "$key_pattern" '
+    [
+      paths(scalars) as $path
+      | select(($path[-1] | tostring) | test($pattern; "i"))
+      | getpath($path)
+      | numbers
+    ]
+    | if length == 0 then "Unknown" else add end
+  ' "$path" 2>/dev/null || printf 'Unknown'
+}
+
+json_first() {
+  local path=$1
+  local key_pattern=$2
+
+  if [[ ! -s $path ]]; then
+    printf 'Unknown'
+    return
+  fi
+
+  jq -r --arg pattern "$key_pattern" '
+    [
+      paths(scalars) as $path
+      | select(($path[-1] | tostring) | test($pattern; "i"))
+      | getpath($path)
+    ]
+    | if length == 0 then "Unknown" else first end
+  ' "$path" 2>/dev/null || printf 'Unknown'
 }
 
 for turn in {1..7}; do
@@ -293,15 +336,19 @@ for turn in {1..7}; do
   prompt=$(cat "$prompt_directory/turn-$turn.txt")
   response_path="$response_directory/turn-$turn.txt"
   error_path="$response_directory/turn-$turn.error.txt"
+  usage_path="$response_directory/turn-$turn.usage.json"
+  turn_started_ms=$(date +%s%3N)
 
   set +e
   if [[ $harness == copilot-cli ]]; then
-    run_copilot_turn "$prompt" >"$response_path" 2>"$error_path"
+    run_copilot_turn "$prompt" "$usage_path" >"$response_path" 2>"$error_path"
   else
-    run_claude_turn "$turn" "$prompt" >"$response_path" 2>"$error_path"
+    run_claude_turn "$turn" "$prompt" "$usage_path" 2>"$error_path"
   fi
   status=$?
   set -e
+  turn_finished_ms=$(date +%s%3N)
+  turn_duration_ms=$((turn_finished_ms - turn_started_ms))
 
   if [[ $status -ne 0 ]]; then
     {
@@ -316,18 +363,58 @@ for turn in {1..7}; do
     exit "$status"
   fi
 
+  if [[ $harness == claude-code ]]; then
+    if ! jq -e '.result | strings' "$usage_path" >/dev/null 2>&1; then
+      echo "Claude Code did not return the expected JSON result for turn $turn." >&2
+      exit 1
+    fi
+    jq -j '.result' "$usage_path" >"$response_path"
+  fi
+
+  if [[ $harness == claude-code ]]; then
+    input_tokens=$(jq -r '.usage.input_tokens // "Unknown"' "$usage_path")
+    output_tokens=$(jq -r '.usage.output_tokens // "Unknown"' "$usage_path")
+    cache_read_tokens=$(jq -r '.usage.cache_read_input_tokens // "Unknown"' "$usage_path")
+    cache_write_tokens=$(jq -r '.usage.cache_creation_input_tokens // "Unknown"' "$usage_path")
+    cli_duration_ms=$(jq -r '.duration_ms // "Unknown"' "$usage_path")
+    cost_usd=$(jq -r '.total_cost_usd // "Unknown"' "$usage_path")
+  else
+    input_tokens=$(json_sum "$usage_path" '^(input_tokens|inputTokens)$')
+    output_tokens=$(json_sum "$usage_path" '^(output_tokens|outputTokens)$')
+    cache_read_tokens=$(json_sum "$usage_path" '^(cache_read_input_tokens|cacheReadTokens|cache_read_tokens)$')
+    cache_write_tokens=$(json_sum "$usage_path" '^(cache_creation_input_tokens|cacheWriteTokens|cache_write_tokens)$')
+    cli_duration_ms=$(json_first "$usage_path" '^(duration_ms|durationMs)$')
+    cost_usd=$(json_first "$usage_path" '^(total_cost_usd|costUsd|cost)$')
+  fi
+
   {
+    printf '\n## Turn %s metrics\n\n' "$turn"
+    printf '| Metric | Value |\n'
+    printf '| --- | ---: |\n'
+    printf '| Wall-clock duration | %s ms |\n' "$turn_duration_ms"
+    printf '| CLI-reported duration | %s |\n' "$cli_duration_ms"
+    printf '| Input tokens | %s |\n' "$input_tokens"
+    printf '| Output tokens | %s |\n' "$output_tokens"
+    printf '| Cache-read tokens | %s |\n' "$cache_read_tokens"
+    printf '| Cache-write tokens | %s |\n' "$cache_write_tokens"
+    printf '| Cost (USD) | %s |\n' "$cost_usd"
     printf '\n## Turn %s response\n\n' "$turn"
     cat "$response_path"
     printf '\n'
   } >>"$partial_path"
 done
 
+run_finished_ms=$(date +%s%3N)
+run_duration_ms=$((run_finished_ms - run_started_ms))
+
 sed -i \
   's/Run is in progress. If this file retains the `.partial.md` suffix, the run did/None. The run completed without a harness error./' \
   "$partial_path"
 sed -i \
   '/^not complete\.$/d' \
+  "$partial_path"
+sed -i \
+  "/| Session ID |/a | Total wall-clock duration | ${run_duration_ms} ms |" \
   "$partial_path"
 
 mv -- "$partial_path" "$result_path"
