@@ -108,6 +108,8 @@ script_directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 experiment_directory=$(cd -- "$script_directory/.." && pwd)
 task_path="$experiment_directory/task.md"
 results_directory="$experiment_directory/results"
+reviews_directory="$experiment_directory/reviews"
+review_template="$reviews_directory/_template.md"
 researcher=${BENCHMARK_RESEARCHER:-Unknown}
 session_id=$(cat /proc/sys/kernel/random/uuid)
 model_slug=$(printf '%s' "$model" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
@@ -121,16 +123,17 @@ printf -v padded_run_number '%02d' "$run_number"
 run_id="${harness}-devcontainer--${model_slug}--run-${padded_run_number}"
 result_path="$results_directory/$run_id.md"
 partial_path="$results_directory/$run_id.partial.md"
+review_path="$reviews_directory/$run_id.md"
 
-if [[ $force == false && ( -e $result_path || -e $partial_path ) ]]; then
-  echo "A result already exists for $run_id. Use --force to overwrite it." >&2
+if [[ $force == false && ( -e $result_path || -e $partial_path || -e $review_path ) ]]; then
+  echo "A result or review already exists for $run_id. Use --force to overwrite it." >&2
   exit 1
 fi
 
 work_directory=$(mktemp -d "${HOME}/arduino-benchmark.XXXXXX")
 prompt_directory="$work_directory/prompts"
 response_directory="$work_directory/responses"
-mkdir -p "$prompt_directory" "$response_directory" "$results_directory"
+mkdir -p "$prompt_directory" "$response_directory" "$results_directory" "$reviews_directory"
 
 cleanup() {
   rm -rf -- "$work_directory"
@@ -183,7 +186,7 @@ if [[ $dry_run == true ]]; then
 fi
 
 if [[ $force == true ]]; then
-  rm -f -- "$result_path" "$partial_path"
+  rm -f -- "$result_path" "$partial_path" "$review_path"
 fi
 
 cat >"$partial_path" <<EOF
@@ -467,4 +470,29 @@ sed -i \
   "$partial_path"
 
 mv -- "$partial_path" "$result_path"
+awk \
+  -v result="../results/$run_id.md" \
+  -v harness="$harness_name in dev container" \
+  -v model="$model" \
+  -v review_date="$(date -u +%F)" '
+    /^Link to result:/ {
+      print "Link to result: [`" result "`](" result ")"
+      next
+    }
+    /^Harness:/ {
+      print "Harness: " harness
+      next
+    }
+    /^Model:/ {
+      print "Model: `" model "`"
+      next
+    }
+    /^Review date:/ {
+      print "Review date: " review_date
+      next
+    }
+    { print }
+  ' "$review_template" >"$review_path"
+
 echo "Created result: $result_path"
+echo "Created pending review: $review_path"

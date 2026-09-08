@@ -252,6 +252,12 @@ submitted prompt, its metrics, and the untouched response, so the result can be
 read independently of `task.md`. If a turn fails, the script preserves the
 content collected so far in a `.partial.md` file.
 
+After a successful run, the script also creates a matching review file from
+`reviews/_template.md` with `Review status: Pending`. The benchmark session
+does not score itself. Review the completed result afterward in a separate
+human or assistant session, record the reviewer, complete the rubric, and
+change the status to `Complete`.
+
 Each turn records:
 
 - Wall-clock duration measured by the runner.
@@ -280,7 +286,8 @@ in the repository.
 
 After a successful run:
 
-1. Copy `reviews/_template.md` to the matching filename in `reviews/`.
+1. Open the matching pending file in `reviews/`.
 2. Score the eight criteria using evidence from the generated result.
-3. Commit the result and review together.
-4. Rebuild the container before the next fully isolated benchmark series.
+3. Record the reviewer and change `Review status` to `Complete`.
+4. Commit the result and completed review together.
+5. Rebuild the container before the next fully isolated benchmark series.

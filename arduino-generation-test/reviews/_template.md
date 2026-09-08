@@ -12,6 +12,8 @@ Reviewer:
 
 Review date: YYYY-MM-DD
 
+Review status: Pending
+
 ## Scoring
 
 | # | Criterion | Point | Evidence or comment |

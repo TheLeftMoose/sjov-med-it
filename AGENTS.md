@@ -73,6 +73,10 @@ calls merely to validate harness changes.
   automatic actions, retries, and post-processing.
 - Score reviews with only `0` or `1` per criterion. Cite the relevant turn or
   response text when a score is ambiguous.
+- Complete reviews only after the corresponding model run has finished. Keep
+  generated review scaffolds as `Pending` until a reviewer has evaluated the
+  result, then mark them `Complete`.
+- Commit each completed result together with its matching completed review.
 - Keep raw results and human reviews separate from generated summaries and
   future report files.
 
