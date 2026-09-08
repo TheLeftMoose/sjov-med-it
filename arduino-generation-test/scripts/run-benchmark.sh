@@ -7,6 +7,7 @@ Usage:
   run-benchmark.sh <copilot-cli|claude-code> <model> [effort] [run-number] [options]
 
 Arguments:
+  model        Use an identifier from the CLI's live /model picker.
   effort       Defaults to medium.
   run-number   Defaults to 1.
 
@@ -16,6 +17,7 @@ Options:
   --help       Show this help.
 
 Set BENCHMARK_RESEARCHER to include a researcher name in the result metadata.
+Avoid Copilot's auto model selection for comparable benchmark runs.
 EOF
 }
 

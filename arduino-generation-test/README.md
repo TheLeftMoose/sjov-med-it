@@ -127,6 +127,79 @@ Built-in system instructions, built-in capabilities, and organization-enforced
 policies remain part of each CLI harness and must be recorded rather than
 treated as removable user configuration.
 
+## Selecting a model
+
+Model availability depends on the signed-in account, provider, organization
+policy, and CLI version. Use the CLI's live model picker instead of maintaining
+a fixed list in this repository.
+
+### GitHub Copilot CLI
+
+From a terminal inside the dev container:
+
+```bash
+mkdir -p /tmp/model-selection
+cd /tmp/model-selection
+copilot
+```
+
+Enter `/model` and select one of the models currently available to the signed-in
+account. Note the model identifier shown by the picker, then exit the session.
+Pass that identifier as the second argument to the runner:
+
+```bash
+cd /workspaces/sjov-med-it
+./arduino-generation-test/scripts/run-benchmark.sh \
+  copilot-cli \
+  MODEL_IDENTIFIER \
+  high \
+  1
+```
+
+For example:
+
+```bash
+./arduino-generation-test/scripts/run-benchmark.sh \
+  copilot-cli \
+  gpt-5.6-sol \
+  high \
+  1
+```
+
+Copilot CLI also accepts `auto`, but avoid it for benchmark runs because the
+resolved model can vary. Select an explicit model identifier instead.
+
+### Claude Code
+
+From the same isolated directory:
+
+```bash
+cd /tmp/model-selection
+claude
+```
+
+Enter `/model`, choose an available model, note its alias or full identifier,
+and exit. Pass that value as the second argument:
+
+```bash
+cd /workspaces/sjov-med-it
+./arduino-generation-test/scripts/run-benchmark.sh \
+  claude-code \
+  MODEL_ALIAS_OR_IDENTIFIER \
+  high \
+  1
+```
+
+Claude Code commonly exposes aliases such as `sonnet`, `opus`, `haiku`,
+`fable`, and `best`, depending on account availability. Aliases may resolve to
+newer model versions over time. Prefer a full model identifier when comparing
+results over a longer period; use an alias when testing the provider's current
+recommended model.
+
+The runner records exactly the value supplied on the command line. If an alias
+is used and the resolved version is not reported by the CLI, keep
+`Model version` as `Unknown` rather than guessing.
+
 ## Automated test process
 
 For a completely clean benchmark series:
