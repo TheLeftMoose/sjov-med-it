@@ -1,0 +1,9 @@
+{
+  "name": "arduino-advisor",
+  "description": "Arduino constraint-reasoning guidance packaged as a local benchmark plugin.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "skills": [
+    "skills/"
+  ]
+}

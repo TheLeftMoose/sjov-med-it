@@ -18,3 +18,17 @@ third-party confidential information in a public issue.
 
 For accidental secret exposure, revoke or rotate the affected credential before
 reporting the incident.
+
+## Benchmark capability profiles
+
+Files under `arduino-generation-test/capabilities/` are trusted executable
+benchmark configuration. Local plugins and MCP servers can influence model
+behavior and MCP server scripts execute inside the dev container.
+
+Capability changes must:
+
+- Contain no credentials, tokens, private URLs, or host credential paths.
+- Keep referenced files inside the capability directory.
+- Use local, pinned, dependency-free implementations where possible.
+- Declare every MCP tool exposed to the model.
+- Pass `scripts/validate-repository.sh` before merge.

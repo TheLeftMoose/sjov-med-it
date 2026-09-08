@@ -15,6 +15,11 @@
 | Model version | Unknown |
 | Temperature | Unknown |
 | Reasoning mode | high |
+| Capability profile | baseline (retrospective classification) |
+| Capability profile SHA-256 | Not recorded (legacy run) |
+| Skills | None |
+| Plugins | None |
+| MCP servers | None |
 | System/custom instructions | Built-in only; customizations disabled |
 | Tools enabled | None |
 | Skills or subagents enabled | Custom capabilities disabled; harness built-ins may remain |
@@ -210,4 +215,3 @@ Ja — med micros() og modulus behøves ingen egne variabler, og anden kode kan 
 
 Udtrykket er 0 i cirka ét sekund og derefter 1 i cirka ét sekund. micros() bruger dog Arduinos
 interne tidstælling; helt uden nogen tidskilde er det matematisk umuligt.
-

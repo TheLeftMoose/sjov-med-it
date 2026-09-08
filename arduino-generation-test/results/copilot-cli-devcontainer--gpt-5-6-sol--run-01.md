@@ -15,6 +15,11 @@
 | Model version | Unknown |
 | Temperature | Unknown |
 | Reasoning mode | high |
+| Capability profile | baseline (retrospective classification) |
+| Capability profile SHA-256 | Not recorded (legacy run) |
+| Skills | None |
+| Plugins | None |
+| MCP servers | None |
 | System/custom instructions | Built-in only; customizations disabled |
 | Tools enabled | None |
 | Skills or subagents enabled | Custom capabilities disabled; harness built-ins may remain |
@@ -211,4 +216,3 @@ Men den er upålidelig: loop() kan ramme samme millisekund flere gange og skifte
 eller helt springe tidspunktet over, når anden kode tager længere tid. Modulus løser derfor
 variabelkravet, men ikke kravet om robust timing; uden en variabel kan det kun gøres sikkert med en
 timer/interrupt eller blokering.
-

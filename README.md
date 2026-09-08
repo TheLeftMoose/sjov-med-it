@@ -13,7 +13,7 @@ reviews.
 ## General principles
 
 - Keep model output unchanged in the result files.
-- Document both the model and the harness used for every run.
+- Document the model, harness, and capability profile used for every run.
 - Separate raw results from human reviews.
 - Keep each experiment self-contained.
 - Remove credentials, private repository content, and unrelated personal data
@@ -42,9 +42,19 @@ agent sockets from each model process.
 After the container starts, authenticate interactively as needed:
 
 ```bash
-copilot
+COPILOT_HOME=$HOME/.benchmark-copilot-auth copilot login
 claude
 ```
 
+The benchmark runner copies only Copilot's authentication state from that
+dedicated directory into a fresh temporary `COPILOT_HOME` for every generation
+and review session. It does not copy installed plugins, personal skills, MCP
+configuration, hooks, settings, extensions, permissions, or session history.
+
 Do not add tokens to `devcontainer.json`, the Dockerfile, or committed
 environment files.
+
+The Arduino benchmark includes validated capability profiles for controlled
+skill, plugin, and local MCP comparisons. These capabilities are loaded only
+for the selected benchmark run and are not installed into persistent CLI
+configuration.

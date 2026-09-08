@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "arduino-plugin",
+  "description": "Loads equivalent Arduino guidance from a local Copilot plugin.",
+  "harnesses": [
+    "copilot-cli"
+  ],
+  "skills": [],
+  "plugins": [
+    "plugins/arduino-advisor"
+  ],
+  "mcpServers": [],
+  "allowedTools": [],
+  "allowedUrls": []
+}

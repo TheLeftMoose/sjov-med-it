@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "baseline",
+  "description": "No skills, plugins, MCP servers, tools, or network access.",
+  "harnesses": [
+    "copilot-cli",
+    "claude-code"
+  ],
+  "skills": [],
+  "plugins": [],
+  "mcpServers": [],
+  "allowedTools": [],
+  "allowedUrls": []
+}

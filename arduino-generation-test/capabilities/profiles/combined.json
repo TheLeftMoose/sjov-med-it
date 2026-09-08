@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "combined",
+  "description": "Combines the Arduino skill, local plugin, and read-only MCP tool.",
+  "harnesses": [
+    "copilot-cli"
+  ],
+  "skills": [
+    "skills/arduino-toggle-reasoning"
+  ],
+  "plugins": [
+    "plugins/arduino-advisor"
+  ],
+  "mcpServers": [
+    {
+      "name": "arduino-guidance",
+      "command": "bash",
+      "args": [
+        "CAPABILITY_ROOT/mcp/arduino-guidance.sh"
+      ],
+      "tools": [
+        "explain_arduino_constraints"
+      ]
+    }
+  ],
+  "allowedTools": [
+    "arduino-guidance(explain_arduino_constraints)"
+  ],
+  "allowedUrls": []
+}
