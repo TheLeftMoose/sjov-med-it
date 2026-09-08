@@ -30,6 +30,23 @@ Review date: YYYY-MM-DD
 Use either `0` or `1` for each criterion. Include a response quotation or turn
 reference when the score might otherwise be ambiguous.
 
+## Metrics summary
+
+| Metric | Value |
+| --- | ---: |
+| Completed turns | |
+| Total measured turn duration | |
+| Average turn duration | |
+| Input tokens | |
+| Output tokens | |
+| Cache-read tokens | |
+| Cache-write tokens | |
+| Reported cost | |
+
+State whether token values are per-turn, cumulative, or derived from cumulative
+counters. Do not compare token counts across harnesses without noting that
+their system prompts and accounting methods may differ.
+
 ## Summary
 
 ### What the model did well
