@@ -29,6 +29,7 @@ Capability changes must:
 
 - Contain no credentials, tokens, private URLs, or host credential paths.
 - Keep referenced files inside the capability directory.
+- Pin external skills to a full public GitHub commit and record their license.
 - Use local, pinned, dependency-free implementations where possible.
 - Declare every MCP tool exposed to the model.
 - Pass `scripts/validate-repository.sh` before merge.

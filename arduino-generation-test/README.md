@@ -44,6 +44,7 @@ The committed profiles are:
 | `arduino-plugin` | Local plugin containing Arduino guidance | Copilot CLI |
 | `arduino-mcp` | One local read-only Arduino MCP tool | Copilot CLI |
 | `combined` | Skill, plugin, and MCP tool | Copilot CLI |
+| `external-arduino-code-generator` | Pinned upstream `arduino-code-generator` skill | Copilot CLI |
 
 Run a capability variant with:
 
@@ -78,9 +79,30 @@ Validate one profile without running a model:
 bash ./arduino-generation-test/scripts/validate-profile.sh arduino-mcp
 ```
 
-Profile paths are confined to `capabilities/`. MCP fixtures must be local,
-dependency-free, and contain no credentials. Profiles store no secret values
-or host credential paths.
+Run the pinned upstream Arduino skill with:
+
+```bash
+./arduino-generation-test/scripts/run-benchmark.sh \
+  copilot-cli \
+  gpt-5.6-sol \
+  high \
+  1 \
+  --profile external-arduino-code-generator
+```
+
+External profiles use full Git commit IDs rather than moving branches or tags.
+The runner downloads the exact public commit before model calls, verifies the
+selected skill and license paths, and adds the upstream Git tree and license
+blob identities to the recorded profile hash. The temporary checkout is
+deleted after the run. See
+[`capabilities/README.md`](capabilities/README.md) for source and license
+details.
+
+Local profile paths are confined to `capabilities/`. External skills are
+restricted to pinned HTTPS GitHub repositories and are fetched without
+forwarded GitHub credentials. MCP fixtures must be local, dependency-free, and
+contain no credentials. Profiles store no secret values or host credential
+paths.
 
 ## Running the experiment
 

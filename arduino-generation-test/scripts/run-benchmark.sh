@@ -254,9 +254,13 @@ if ! jq -e --arg harness "$harness" \
   exit 2
 fi
 
-skills_display=$(jq -r \
-  'if .skills | length == 0 then "None" else .skills | join(", ") end' \
-  "$profile_path")
+skills_display=$(jq -r '
+  [
+    .skills[],
+    (.externalSkills[] | "\(.name)@\(.commit[0:12])")
+  ]
+  | if length == 0 then "None" else join(", ") end
+' "$profile_path")
 plugins_display=$(jq -r \
   'if .plugins | length == 0 then "None" else .plugins | join(", ") end' \
   "$profile_path")
@@ -269,6 +273,17 @@ allowed_tools_display=$(jq -r \
 allowed_urls_display=$(jq -r \
   'if .allowedUrls | length == 0 then "None" else .allowedUrls | join(", ") end' \
   "$profile_path")
+external_sources_display=$(jq -r '
+  if .externalSkills | length == 0
+  then "None"
+  else
+    [
+      .externalSkills[]
+      | "\(.repository)@\(.commit):\(.path) [\(.license)]"
+    ]
+    | join(", ")
+  end
+' "$profile_path")
 
 printf -v padded_run_number '%02d' "$run_number"
 if [[ $profile_id == baseline ]]; then
@@ -310,6 +325,10 @@ cleanup() {
 trap cleanup EXIT
 
 capability_arguments=()
+external_skill_names=()
+external_skill_paths=()
+external_skill_identities=()
+external_git_home="$work_directory/external-git-home"
 
 prepare_isolated_copilot_home() {
   if [[ ! -f $copilot_auth_home/config.json ]]; then
@@ -331,6 +350,138 @@ prepare_isolated_copilot_home() {
 EOF
 }
 
+run_external_git() {
+  env -i \
+    HOME="$external_git_home" \
+    PATH="$PATH" \
+    TMPDIR="${TMPDIR:-/tmp}" \
+    LANG="${LANG:-C.UTF-8}" \
+    HTTPS_PROXY="${HTTPS_PROXY:-}" \
+    HTTP_PROXY="${HTTP_PROXY:-}" \
+    NO_PROXY="${NO_PROXY:-}" \
+    https_proxy="${https_proxy:-}" \
+    http_proxy="${http_proxy:-}" \
+    no_proxy="${no_proxy:-}" \
+    SSL_CERT_FILE="${SSL_CERT_FILE:-}" \
+    SSL_CERT_DIR="${SSL_CERT_DIR:-}" \
+    GIT_CONFIG_GLOBAL=/dev/null \
+    GIT_CONFIG_NOSYSTEM=1 \
+    GIT_TERMINAL_PROMPT=0 \
+    git \
+      -c credential.helper= \
+      -c core.askPass= \
+      -c core.hooksPath=/dev/null \
+      -c http.extraHeader= \
+      "$@"
+}
+
+resolve_external_skills() {
+  local external_sources_directory="$work_directory/external-sources"
+  local name
+  local repository
+  local commit
+  local skill_path
+  local license_name
+  local license_path
+  local checkout_directory
+  local resolved_skill_path
+  local resolved_license_path
+  local skill_tree_hash
+  local license_blob_hash
+
+  mkdir -p "$external_sources_directory" "$external_git_home"
+
+  while IFS=$'\t' read -r \
+    name repository commit skill_path license_name license_path; do
+    checkout_directory="$external_sources_directory/$name"
+
+    run_external_git init --quiet "$checkout_directory"
+    run_external_git -C "$checkout_directory" remote add origin "$repository"
+    run_external_git \
+      -C "$checkout_directory" \
+      -c protocol.version=2 \
+      fetch --quiet --depth=1 --filter=blob:none origin "$commit"
+    run_external_git \
+      -C "$checkout_directory" \
+      -c advice.detachedHead=false \
+      checkout --quiet --detach FETCH_HEAD
+
+    if [[ $(run_external_git -C "$checkout_directory" rev-parse HEAD) != "$commit" ]]; then
+      echo "External skill '$name' did not resolve to commit $commit." >&2
+      exit 1
+    fi
+
+    if ! resolved_skill_path=$(realpath "$checkout_directory/$skill_path"); then
+      echo "External skill '$name' path does not exist: $skill_path" >&2
+      exit 1
+    fi
+    if ! resolved_license_path=$(realpath "$checkout_directory/$license_path"); then
+      echo "External skill '$name' license path does not exist: $license_path" >&2
+      exit 1
+    fi
+    case "$resolved_skill_path" in
+      "$checkout_directory"/*)
+        ;;
+      *)
+        echo "External skill '$name' resolves outside its checkout." >&2
+        exit 1
+        ;;
+    esac
+    case "$resolved_license_path" in
+      "$checkout_directory"/*)
+        ;;
+      *)
+        echo "External skill '$name' license resolves outside its checkout." >&2
+        exit 1
+        ;;
+    esac
+
+    if [[ ! -f $resolved_skill_path/SKILL.md ]]; then
+      echo "External skill '$name' is missing $skill_path/SKILL.md." >&2
+      exit 1
+    fi
+    if [[ ! -f $resolved_license_path ]]; then
+      echo "External skill '$name' is missing license file $license_path." >&2
+      exit 1
+    fi
+
+    skill_tree_hash=$(
+      run_external_git -C "$checkout_directory" rev-parse "$commit:$skill_path"
+    )
+    license_blob_hash=$(
+      run_external_git -C "$checkout_directory" rev-parse "$commit:$license_path"
+    )
+
+    external_skill_names+=("$name")
+    external_skill_paths+=("$resolved_skill_path")
+    external_skill_identities+=(
+      "$repository@$commit:$skill_path:$skill_tree_hash:$license_name:$license_blob_hash"
+    )
+  done < <(
+    jq -r '
+      .externalSkills[]
+      | [
+          .name,
+          .repository,
+          .commit,
+          .path,
+          .license,
+          .licensePath
+        ]
+      | @tsv
+    ' "$profile_path"
+  )
+
+  if ((${#external_skill_identities[@]} > 0)); then
+    profile_hash=$(
+      {
+        printf 'local-profile:%s\n' "$profile_hash"
+        printf 'external-source:%s\n' "${external_skill_identities[@]}"
+      } | sha256sum | awk '{ print $1 }'
+    )
+  fi
+}
+
 prepare_copilot_capabilities() {
   local generated_skill_plugin="$work_directory/profile-skills"
   local generated_mcp_config="$work_directory/profile-mcp.json"
@@ -340,7 +491,8 @@ prepare_copilot_capabilities() {
   local tool
   local url
 
-  if [[ $(jq '.skills | length' "$profile_path") -gt 0 ]]; then
+  if [[ $(jq '.skills | length' "$profile_path") -gt 0 ||
+    ${#external_skill_paths[@]} -gt 0 ]]; then
     mkdir -p "$generated_skill_plugin/skills"
     jq -n \
       --arg name "benchmark-profile-$profile_id" \
@@ -357,6 +509,12 @@ prepare_copilot_capabilities() {
         "$capabilities_directory/$skill_path" \
         "$generated_skill_plugin/skills/$(basename "$skill_path")"
     done < <(jq -r '.skills[]' "$profile_path")
+
+    for index in "${!external_skill_paths[@]}"; do
+      ln -s \
+        "${external_skill_paths[$index]}" \
+        "$generated_skill_plugin/skills/${external_skill_names[$index]}"
+    done
 
     capability_arguments+=(--plugin-dir "$generated_skill_plugin")
   fi
@@ -415,7 +573,7 @@ validate_copilot_capability_loading() {
   local plugin_inventory
   local expected_plugin
 
-  if [[ $(jq '(.skills | length) + (.plugins | length)' "$profile_path") -gt 0 ]]; then
+  if [[ $(jq '(.skills | length) + (.externalSkills | length) + (.plugins | length)' "$profile_path") -gt 0 ]]; then
     if ! plugin_inventory=$(
       COPILOT_CUSTOM_INSTRUCTIONS_DIRS= \
       COPILOT_HOME="$isolated_copilot_home" \
@@ -426,7 +584,7 @@ validate_copilot_capability_loading() {
       exit 1
     fi
 
-    if [[ $(jq '.skills | length' "$profile_path") -gt 0 ]]; then
+    if [[ $(jq '(.skills | length) + (.externalSkills | length)' "$profile_path") -gt 0 ]]; then
       expected_plugin="benchmark-profile-$profile_id"
       if ! grep -Fq "$expected_plugin" <<<"$plugin_inventory"; then
         echo "Temporary skill plugin '$expected_plugin' was not loaded." >&2
@@ -451,6 +609,7 @@ validate_copilot_capability_loading() {
 
 if [[ $harness == copilot-cli ]]; then
   prepare_isolated_copilot_home
+  resolve_external_skills
   prepare_copilot_capabilities
   validate_copilot_capability_loading
 fi
@@ -501,6 +660,7 @@ if [[ $dry_run == true ]]; then
   echo "MCP servers: $mcp_servers_display"
   echo "Allowed tools: $allowed_tools_display"
   echo "Allowed URLs: $allowed_urls_display"
+  echo "External sources: $external_sources_display"
   echo "Run ID: $run_id"
   echo "Session ID: $session_id"
   echo "Prompts: 7"
@@ -535,6 +695,7 @@ cat >"$partial_path" <<EOF
 | Skills | $skills_display |
 | Plugins | $plugins_display |
 | MCP servers | $mcp_servers_display |
+| External capability sources | $external_sources_display |
 | System/custom instructions | Built-in only; customizations disabled |
 | Tools enabled | $allowed_tools_display |
 | Skills or subagents enabled | Profile skills and plugins as listed; subagents disabled |

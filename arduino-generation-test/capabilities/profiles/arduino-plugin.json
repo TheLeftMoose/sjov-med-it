@@ -6,6 +6,7 @@
     "copilot-cli"
   ],
   "skills": [],
+  "externalSkills": [],
   "plugins": [
     "plugins/arduino-advisor"
   ],

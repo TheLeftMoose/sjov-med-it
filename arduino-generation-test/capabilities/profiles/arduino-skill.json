@@ -8,6 +8,7 @@
   "skills": [
     "skills/arduino-toggle-reasoning"
   ],
+  "externalSkills": [],
   "plugins": [],
   "mcpServers": [],
   "allowedTools": [],

@@ -42,6 +42,7 @@ if ! jq -e '
     "description",
     "harnesses",
     "skills",
+    "externalSkills",
     "plugins",
     "mcpServers",
     "allowedTools",
@@ -53,6 +54,26 @@ if ! jq -e '
   and (.harnesses | type == "array" and length > 0)
   and all(.harnesses[]; . == "copilot-cli" or . == "claude-code")
   and (.skills | type == "array" and all(.[]; type == "string"))
+  and (.externalSkills | type == "array")
+  and all(.externalSkills[];
+    type == "object"
+    and ((keys - [
+      "name",
+      "repository",
+      "commit",
+      "path",
+      "license",
+      "licensePath"
+    ]) | length == 0)
+    and (.name | type == "string" and test("^[a-z0-9]+(?:-[a-z0-9]+)*$"))
+    and (.repository | type == "string" and test("^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\\.git)?$"))
+    and (.commit | type == "string" and test("^[a-f0-9]{40}$"))
+    and (.path | type == "string" and length > 0 and (split("/") | all(. != "" and . != "." and . != "..")))
+    and (.license | type == "string" and length > 0)
+    and (.licensePath | type == "string" and length > 0 and (split("/") | all(. != "" and . != "." and . != "..")))
+  )
+  and ([.externalSkills[].name] | length == (unique | length))
+  and ((.externalSkills | length == 0) or .harnesses == ["copilot-cli"])
   and (.plugins | type == "array" and all(.[]; type == "string"))
   and (.mcpServers | type == "array")
   and all(.mcpServers[];

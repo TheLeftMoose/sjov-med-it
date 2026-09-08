@@ -63,6 +63,9 @@ Use `--profile <id>` to select a capability profile. `baseline` is the default.
 Non-baseline profiles currently support Copilot CLI and must load capabilities
 only through temporary `--plugin-dir` and `--additional-mcp-config` arguments;
 never install them into the container's persistent CLI configuration.
+External skills must use a public HTTPS GitHub repository, a full commit ID,
+and explicit skill and license paths. Fetch without host GitHub credentials and
+include the resolved Git tree identity in the recorded profile hash.
 
 ## Benchmark conventions
 

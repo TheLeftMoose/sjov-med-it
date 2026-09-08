@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "external-arduino-code-generator",
+  "description": "Loads the upstream arduino-code-generator skill from a pinned public Git commit.",
+  "harnesses": [
+    "copilot-cli"
+  ],
+  "skills": [],
+  "externalSkills": [
+    {
+      "name": "arduino-code-generator",
+      "repository": "https://github.com/wedsamuel1230/arduino-skills.git",
+      "commit": "d6e77bb2461a2126267e0e00b697b28abe0c0ea2",
+      "path": "skills/arduino-code-generator",
+      "license": "MIT",
+      "licensePath": "LICENSE"
+    }
+  ],
+  "plugins": [],
+  "mcpServers": [],
+  "allowedTools": [],
+  "allowedUrls": []
+}
