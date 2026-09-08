@@ -431,6 +431,8 @@ for turn in {1..7}; do
 
   if [[ $reported_cost == Unknown ]]; then
     reported_cost_display=Unknown
+  elif [[ $reported_cost_unit == "AI credits" && $reported_cost == 1 ]]; then
+    reported_cost_display="1 AI credit"
   else
     reported_cost_display="$reported_cost $reported_cost_unit"
   fi
