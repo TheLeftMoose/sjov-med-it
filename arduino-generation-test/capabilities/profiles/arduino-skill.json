@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "arduino-skill",
+  "description": "Adds a focused Arduino reasoning skill without tools or network access.",
+  "harnesses": [
+    "copilot-cli"
+  ],
+  "skills": [
+    "skills/arduino-toggle-reasoning"
+  ],
+  "externalSkills": [],
+  "plugins": [],
+  "mcpServers": [],
+  "allowedTools": [],
+  "allowedUrls": []
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "arduino-mcp",
+  "description": "Exposes one local, read-only Arduino reasoning tool through MCP.",
+  "harnesses": [
+    "copilot-cli"
+  ],
+  "skills": [],
+  "externalSkills": [],
+  "plugins": [],
+  "mcpServers": [
+    {
+      "name": "arduino-guidance",
+      "command": "bash",
+      "args": [
+        "CAPABILITY_ROOT/mcp/arduino-guidance.sh"
+      ],
+      "tools": [
+        "explain_arduino_constraints"
+      ]
+    }
+  ],
+  "allowedTools": [
+    "arduino-guidance(explain_arduino_constraints)"
+  ],
+  "allowedUrls": []
+}

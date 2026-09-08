@@ -11,18 +11,98 @@ guarantee the requested timing.
 
 ## Model and harness
 
-The model and the harness are recorded separately:
+The model, harness, and capability profile are recorded separately:
 
 - **Model:** The language model that generates the response, such as a Claude,
   GPT, or Gemini model.
 - **Harness:** The product, client, agent, or integration through which the
   model is used, such as GitHub Copilot CLI, Claude Code, a GitHub coding
   agent, a custom agent, or a direct API script.
+- **Capability profile:** The exact skills, plugins, MCP servers, tools, and
+  network access intentionally exposed for one run.
 
 The same model can behave differently across harnesses because the harness may
 add system instructions, repository context, tools, skills, agents, or an
 execution loop. A benchmark run therefore represents a specific combination
-of model, harness, configuration, and prompts.
+of model, harness, capability profile, and prompts.
+
+## Capability profiles
+
+Capability profiles live in [`capabilities/profiles/`](capabilities/profiles/)
+and are a third benchmark dimension:
+
+```text
+model × harness × capability profile
+```
+
+The committed profiles are:
+
+| Profile | Capabilities | Harnesses |
+| --- | --- | --- |
+| `baseline` | No custom capabilities | Copilot CLI and Claude Code |
+| `arduino-skill` | Standalone Arduino reasoning skill | Copilot CLI |
+| `arduino-plugin` | Local plugin containing Arduino guidance | Copilot CLI |
+| `arduino-mcp` | One local read-only Arduino MCP tool | Copilot CLI |
+| `combined` | Skill, plugin, and MCP tool | Copilot CLI |
+| `external-arduino-code-generator` | Pinned upstream `arduino-code-generator` skill | Copilot CLI |
+
+Run a capability variant with:
+
+```bash
+./arduino-generation-test/scripts/run-benchmark.sh \
+  copilot-cli \
+  gpt-5.6-sol \
+  high \
+  1 \
+  --profile arduino-skill
+```
+
+For non-baseline profiles, filenames include the profile:
+
+```text
+copilot-cli-devcontainer--gpt-5-6-sol--profile-arduino-skill--run-01.md
+```
+
+The runner validates the profile before making model calls, computes a SHA-256
+over the profile and referenced capability files, and records the resolved
+skills, plugins, MCP servers, tools, URLs, and hash in the result.
+
+Capabilities are never installed into persistent CLI configuration. Standalone
+skills are wrapped in a temporary local plugin, committed plugins are loaded
+with `--plugin-dir`, and MCP servers are supplied with a temporary
+`--additional-mcp-config` file. Only profile-declared MCP tools are visible.
+The separate review session does not receive the tested capabilities.
+
+Validate one profile without running a model:
+
+```bash
+bash ./arduino-generation-test/scripts/validate-profile.sh arduino-mcp
+```
+
+Run the pinned upstream Arduino skill with:
+
+```bash
+./arduino-generation-test/scripts/run-benchmark.sh \
+  copilot-cli \
+  gpt-5.6-sol \
+  high \
+  1 \
+  --profile external-arduino-code-generator
+```
+
+External profiles use full Git commit IDs rather than moving branches or tags.
+The runner downloads the exact public commit before model calls, verifies the
+selected skill and license paths, and adds the upstream Git tree and license
+blob identities to the recorded profile hash. The temporary checkout is
+deleted after the run. See
+[`capabilities/README.md`](capabilities/README.md) for source and license
+details.
+
+Local profile paths are confined to `capabilities/`. External skills are
+restricted to pinned HTTPS GitHub repositories and are fetched without
+forwarded GitHub credentials. MCP fixtures must be local, dependency-free, and
+contain no credentials. Profiles store no secret values or host credential
+paths.
 
 ## Running the experiment
 
@@ -131,7 +211,17 @@ treated as removable user configuration.
 
 Model availability depends on the signed-in account, provider, organization
 policy, and CLI version. Use the CLI's live model picker instead of maintaining
-a fixed list in this repository.
+a fixed list in this repository. The runner validates Copilot model input
+against the identifiers exposed by the installed CLI and normalizes equivalent
+capitalization, spaces, and hyphens before creating a result file. For example,
+`Claude Sonnet 5` and `Claude-Sonnet-5` normalize to `claude-sonnet-5`.
+
+This validation confirms that the installed CLI recognizes the identifier. The
+CLI does not expose account-specific model entitlement through a non-interactive
+listing command, so the runner can only confirm account availability when the
+first request starts. If the account rejects the model before producing a
+response, the runner removes the empty partial result and directs the operator
+to the live `/model` picker.
 
 ### GitHub Copilot CLI
 
@@ -207,12 +297,25 @@ For a completely clean benchmark series:
 1. Delete any previous result or `.partial.md` file for the same harness,
    model, and run number.
 2. In VS Code, run **Dev Containers: Rebuild Container Without Cache**.
-3. Authenticate the selected CLI inside the rebuilt container.
+3. Authenticate the selected CLI inside the rebuilt container. For Copilot,
+   use the dedicated authentication directory shown below.
 4. Run the benchmark command below.
 
 Authentication and other container-local state are discarded by the rebuild.
 The repository remains mounted, so committed files and generated result files
 remain available unless you delete them explicitly.
+
+Authenticate Copilot with:
+
+```bash
+COPILOT_HOME=$HOME/.benchmark-copilot-auth copilot login
+```
+
+Every Copilot benchmark and review copies only `config.json` from this
+authentication-only directory into a fresh temporary `COPILOT_HOME`. Installed
+plugins, personal skills, MCP configuration, hooks, settings, extensions,
+permissions, and session history are not inherited. Do not install
+customizations into `.benchmark-copilot-auth`.
 
 Run GitHub Copilot CLI with:
 
@@ -252,11 +355,34 @@ submitted prompt, its metrics, and the untouched response, so the result can be
 read independently of `task.md`. If a turn fails, the script preserves the
 content collected so far in a `.partial.md` file.
 
-After a successful run, the script also creates a matching review file from
-`reviews/_template.md` with `Review status: Pending`. The benchmark session
-does not score itself. Review the completed result afterward in a separate
-human or assistant session, record the reviewer, complete the rubric, and
-change the status to `Complete`.
+After a successful run, the same command starts a fresh isolated reviewer
+session. The reviewer receives the completed result, `task.md`, and the review
+template only after all seven benchmark turns have finished. It writes a
+matching review with `Review status: Complete`; the benchmark conversation
+never sees the expected reasoning or scores itself.
+
+By default, the review uses the same harness and model in a new session. To use
+a fixed independent reviewer model, add:
+
+```bash
+--review-model gpt-5.6-sol
+```
+
+Copilot model identifiers are validated before benchmark calls. Claude Code
+does not expose a non-generating account-specific model list, so Claude runs
+must use the tested model for their separate review session.
+
+If result generation succeeds but review generation fails, the completed result
+is preserved. Retry only the review without repeating the seven benchmark
+turns:
+
+```bash
+bash ./arduino-generation-test/scripts/review-result.sh \
+  copilot-cli \
+  gpt-5.6-sol \
+  ./arduino-generation-test/results/RESULT_FILE.md \
+  --force
+```
 
 Each turn records:
 
@@ -277,17 +403,16 @@ credits; Claude Code's `total_cost_usd` value is recorded as USD.
 
 For every model process, the runner removes forwarded host tokens, Git
 credential helpers, and SSH agent sockets. It also disables custom
-instructions, tools, MCP servers, plugins, skills, IDE integration, memory,
-remote features, and model fallback where the selected CLI provides a control.
+instructions, IDE integration, memory, remote features, and model fallback
+where the selected CLI provides a control. The baseline profile exposes no
+custom tools, MCP servers, plugins, or skills. Non-baseline profiles expose
+only their declared capability set.
 
 Authentication is intentionally not automated. Sign in from inside the
 disposable container so credentials are not forwarded from the host or stored
-in the repository.
+in the repository. Copilot authentication must use the dedicated
+`.benchmark-copilot-auth` location described above.
 
-After a successful run:
-
-1. Open the matching pending file in `reviews/`.
-2. Score the eight criteria using evidence from the generated result.
-3. Record the reviewer and change `Review status` to `Complete`.
-4. Commit the result and completed review together.
-5. Rebuild the container before the next fully isolated benchmark series.
+After a successful run, inspect the automatically completed review and commit
+it together with the matching result. Rebuild the container before the next
+fully isolated benchmark series.

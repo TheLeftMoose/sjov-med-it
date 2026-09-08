@@ -15,6 +15,12 @@
 | Model version | Unknown |
 | Temperature | Unknown |
 | Reasoning mode | Unknown |
+| Capability profile | baseline |
+| Capability profile SHA-256 | Unknown |
+| Skills | None |
+| Plugins | None |
+| MCP servers | None |
+| External capability sources | None |
 | System/custom instructions | Default |
 | Tools enabled | None |
 | Skills or subagents enabled | None |

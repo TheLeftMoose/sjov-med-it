@@ -18,3 +18,26 @@ third-party confidential information in a public issue.
 
 For accidental secret exposure, revoke or rotate the affected credential before
 reporting the incident.
+
+## Benchmark capability profiles
+
+Files under `arduino-generation-test/capabilities/` are trusted executable
+benchmark configuration. Local plugins and MCP servers can influence model
+behavior and MCP server scripts execute inside the dev container.
+
+Capability changes must:
+
+- Contain no credentials, tokens, private URLs, or host credential paths.
+- Keep referenced files inside the capability directory.
+- Pin external skills to a full public GitHub commit and record their license.
+- Use local, pinned, dependency-free implementations where possible.
+- Declare every MCP tool exposed to the model.
+- Pass `scripts/validate-repository.sh` before merge.
+
+## Owner pull-request approval
+
+The `Approve repository owner pull requests` workflow may approve pull requests
+only when GitHub reports the author as `TheLeftMoose`. It uses
+`pull_request_target` so the trusted workflow definition comes from the default
+branch. The workflow must never check out, execute, source, or evaluate content
+from the pull-request branch.
