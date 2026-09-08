@@ -52,7 +52,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 1 response
 
@@ -72,7 +72,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 2 response
 
@@ -92,7 +92,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 3 response
 
@@ -112,7 +112,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 4 response
 
@@ -132,7 +132,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 5 response
 
@@ -152,7 +152,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 6 response
 
@@ -172,7 +172,7 @@ if the run completed normally.
 | Output tokens | Unknown |
 | Cache-read tokens | Unknown |
 | Cache-write tokens | Unknown |
-| Cost (USD) | Unknown |
+| Reported cost | Unknown |
 
 ## Turn 7 response
 

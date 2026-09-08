@@ -333,6 +333,26 @@ json_first() {
   ' "$path" 2>/dev/null || printf 'Unknown'
 }
 
+subtract_values() {
+  local current=$1
+  local previous=$2
+
+  if [[ $current == Unknown || $previous == Unknown ]]; then
+    printf 'Unknown'
+    return
+  fi
+
+  awk -v current="$current" -v previous="$previous" \
+    'BEGIN { print current - previous }'
+}
+
+previous_input_tokens=0
+previous_output_tokens=0
+previous_cache_read_tokens=0
+previous_cache_write_tokens=0
+previous_cost=0
+previous_cli_duration_ms=0
+
 for turn in {1..7}; do
   echo "Running turn $turn of 7..." >&2
   prompt=$(cat "$prompt_directory/turn-$turn.txt")
@@ -379,14 +399,37 @@ for turn in {1..7}; do
     cache_read_tokens=$(jq -r '.usage.cache_read_input_tokens // "Unknown"' "$usage_path")
     cache_write_tokens=$(jq -r '.usage.cache_creation_input_tokens // "Unknown"' "$usage_path")
     cli_duration_ms=$(jq -r '.duration_ms // "Unknown"' "$usage_path")
-    cost_usd=$(jq -r '.total_cost_usd // "Unknown"' "$usage_path")
+    reported_cost=$(jq -r '.total_cost_usd // "Unknown"' "$usage_path")
+    reported_cost_unit=USD
   else
-    input_tokens=$(json_sum "$usage_path" '^(input_tokens|inputTokens)$')
-    output_tokens=$(json_sum "$usage_path" '^(output_tokens|outputTokens)$')
-    cache_read_tokens=$(json_sum "$usage_path" '^(cache_read_input_tokens|cacheReadTokens|cache_read_tokens)$')
-    cache_write_tokens=$(json_sum "$usage_path" '^(cache_creation_input_tokens|cacheWriteTokens|cache_write_tokens)$')
-    cli_duration_ms=$(json_first "$usage_path" '^(duration_ms|durationMs)$')
-    cost_usd=$(json_first "$usage_path" '^(total_cost_usd|costUsd|cost)$')
+    cumulative_input_tokens=$(json_sum "$usage_path" '^(input_tokens|inputTokens)$')
+    cumulative_output_tokens=$(json_sum "$usage_path" '^(output_tokens|outputTokens)$')
+    cumulative_cache_read_tokens=$(json_sum "$usage_path" '^(cache_read_input_tokens|cacheReadTokens|cache_read_tokens)$')
+    cumulative_cache_write_tokens=$(json_sum "$usage_path" '^(cache_creation_input_tokens|cacheWriteTokens|cache_write_tokens)$')
+    cumulative_cost=$(json_first "$usage_path" '^(cost|costUsd|total_cost_usd)$')
+
+    input_tokens=$(subtract_values "$cumulative_input_tokens" "$previous_input_tokens")
+    output_tokens=$(subtract_values "$cumulative_output_tokens" "$previous_output_tokens")
+    cache_read_tokens=$(subtract_values "$cumulative_cache_read_tokens" "$previous_cache_read_tokens")
+    cache_write_tokens=$(subtract_values "$cumulative_cache_write_tokens" "$previous_cache_write_tokens")
+    reported_cost=$(subtract_values "$cumulative_cost" "$previous_cost")
+
+    previous_input_tokens=$cumulative_input_tokens
+    previous_output_tokens=$cumulative_output_tokens
+    previous_cache_read_tokens=$cumulative_cache_read_tokens
+    previous_cache_write_tokens=$cumulative_cache_write_tokens
+    previous_cost=$cumulative_cost
+
+    cumulative_cli_duration_ms=$(json_first "$usage_path" '^(duration_ms|durationMs)$')
+    cli_duration_ms=$(subtract_values "$cumulative_cli_duration_ms" "$previous_cli_duration_ms")
+    previous_cli_duration_ms=$cumulative_cli_duration_ms
+    reported_cost_unit="AI credits"
+  fi
+
+  if [[ $reported_cost == Unknown ]]; then
+    reported_cost_display=Unknown
+  else
+    reported_cost_display="$reported_cost $reported_cost_unit"
   fi
 
   {
@@ -403,7 +446,7 @@ for turn in {1..7}; do
     printf '| Output tokens | %s |\n' "$output_tokens"
     printf '| Cache-read tokens | %s |\n' "$cache_read_tokens"
     printf '| Cache-write tokens | %s |\n' "$cache_write_tokens"
-    printf '| Cost (USD) | %s |\n' "$cost_usd"
+    printf '| Reported cost | %s |\n' "$reported_cost_display"
     printf '\n## Turn %s response\n\n' "$turn"
     cat "$response_path"
     printf '\n'

@@ -257,12 +257,17 @@ Each turn records:
 - Wall-clock duration measured by the runner.
 - CLI-reported duration when available.
 - Input, output, cache-read, and cache-write tokens when reported.
-- Reported cost when available.
+- Reported cost or AI-credit usage when available.
 
 The runner does not estimate missing usage. Unsupported or absent values are
 recorded as `Unknown`. Wall-clock duration includes local CLI and network
 overhead, while CLI-reported duration and token accounting follow the selected
 harness's own definitions.
+
+Copilot CLI reports cumulative session usage for resumed conversations. The
+runner converts those counters to per-turn deltas. Claude Code reports
+per-invocation usage directly. Copilot's `cost` value is recorded as AI
+credits; Claude Code's `total_cost_usd` value is recorded as USD.
 
 For every model process, the runner removes forwarded host tokens, Git
 credential helpers, and SSH agent sockets. It also disables custom
