@@ -13,6 +13,8 @@ reviews.
 ## General principles
 
 - Keep model output unchanged in the result files.
-- Document the model and settings used for every run.
+- Document both the model and the harness used for every run.
 - Separate raw results from human reviews.
 - Keep each experiment self-contained.
+- Remove credentials, private repository content, and unrelated personal data
+  before committing results.

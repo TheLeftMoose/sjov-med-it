@@ -1,8 +1,12 @@
-# Model review
+# Benchmark run review
 
 ## Run
 
-Link to result: `../results/model-name.md`
+Link to result: `../results/harness--model--run-01.md`
+
+Harness:
+
+Model:
 
 Reviewer:
 
@@ -33,5 +37,7 @@ reference when the score might otherwise be ambiguous.
 ### What the model missed
 
 ### Constraint handling
+
+### Harness influence
 
 ### Final assessment

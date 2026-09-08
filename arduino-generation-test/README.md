@@ -1,7 +1,7 @@
 # Arduino generation test
 
-This experiment compares how different models respond to a progressively
-constrained Arduino code-generation task.
+This experiment compares how different model and harness combinations respond
+to a progressively constrained Arduino code-generation task.
 
 The task begins as a simple request to blink an LED on pin 13. Each subsequent
 message removes an implementation option or introduces a new hint. The test is
@@ -9,10 +9,25 @@ intended to evaluate context retention, constraint handling, code reasoning,
 and whether the model recognizes when the complete set of requirements cannot
 guarantee the requested timing.
 
+## Model and harness
+
+The model and the harness are recorded separately:
+
+- **Model:** The language model that generates the response, such as a Claude,
+  GPT, or Gemini model.
+- **Harness:** The product, client, agent, or integration through which the
+  model is used, such as GitHub Copilot CLI, Claude Code, a GitHub coding
+  agent, a custom agent, or a direct API script.
+
+The same model can behave differently across harnesses because the harness may
+add system instructions, repository context, tools, skills, agents, or an
+execution loop. A benchmark run therefore represents a specific combination
+of model, harness, configuration, and prompts.
+
 ## Running the experiment
 
-1. Start a new conversation with the model.
-2. Record the model name, version, settings, and date in a copy of
+1. Start a clean session in the selected harness.
+2. Record the harness, model, configuration, and date in a copy of
    [`results/_template.md`](results/_template.md).
 3. Send the seven prompts from [`task.md`](task.md) in order.
 4. Do not reset the conversation or provide additional hints.
@@ -24,22 +39,29 @@ guarantee the requested timing.
 Use matching filenames for a result and its review:
 
 ```text
-results/model-name.md
-reviews/model-name.md
+results/harness--model--run-01.md
+reviews/harness--model--run-01.md
 ```
 
-If the same model is tested more than once, append a run number:
+Examples:
 
 ```text
-results/model-name-run-01.md
-reviews/model-name-run-01.md
+results/copilot-cli--gpt-5-6-sol--run-01.md
+results/claude-code--claude-sonnet-5--run-01.md
+results/github-custom-agent--model-unknown--run-01.md
 ```
 
 ## Fairness rules
 
-- Use a clean conversation for each run.
+- Use a clean harness session for each run.
 - Use the prompts exactly as written.
 - Keep model output unchanged, including mistakes.
-- Record unknown model settings as `Unknown`.
+- Record unavailable harness or model details as `Unknown`.
 - Do not expose the expected reasoning or review criteria to the model.
-- Note interruptions, retries, or tool use in the result metadata.
+- Record tools, skills, agents, repository context, and internet access made
+  available by the harness.
+- Note interruptions, retries, automatic actions, or other deviations in the
+  run notes.
+- Do not commit credentials, private system instructions, unrelated repository
+  content, or personal data. Describe inaccessible instructions as `Default`
+  or `Not available` rather than attempting to extract them.

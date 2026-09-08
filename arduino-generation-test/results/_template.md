@@ -1,23 +1,42 @@
-# Model result
+# Benchmark run
 
 ## Metadata
 
 | Field | Value |
 | --- | --- |
+| Run ID | harness--model--run-01 |
+| Date | YYYY-MM-DD |
+| Researcher | |
+| Harness | |
+| Harness version | Unknown |
+| Harness mode | Chat, agent, CLI, IDE, API, or other |
+| Model provider | |
 | Model | |
 | Model version | Unknown |
-| Provider | |
-| Date | YYYY-MM-DD |
 | Temperature | Unknown |
 | Reasoning mode | Unknown |
+| System/custom instructions | Default |
 | Tools enabled | None |
+| Skills or subagents enabled | None |
+| Repository context provided | None |
+| Internet access | Unknown |
 | Run number | 1 |
-| Researcher | |
+
+Use `Unknown` when a value cannot be determined. Do not attempt to extract
+private system instructions. For custom instructions, link to a committed file
+or provide a non-sensitive summary.
+
+## Harness notes
+
+Describe relevant harness behavior, including automatic context collection,
+tool execution, file changes, command execution, or response post-processing.
+Write `None` if the harness only relayed the prompts and responses.
 
 ## Run notes
 
 Record interruptions, retries, errors, or deviations from the documented
-procedure. Write `None` if the run completed normally.
+procedure. Also record whether the harness acted between prompts. Write `None`
+if the run completed normally.
 
 ## Turn 1 response
 
