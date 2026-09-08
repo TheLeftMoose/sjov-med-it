@@ -43,6 +43,19 @@ copilot --version
 claude --version
 ```
 
+Run the automated benchmark inside the container with:
+
+```bash
+./arduino-generation-test/scripts/run-benchmark.sh \
+  <copilot-cli|claude-code> \
+  <model> \
+  <effort> \
+  <run-number>
+```
+
+Use `--dry-run` when checking the script or container. Do not make paid model
+calls merely to validate harness changes.
+
 ## Benchmark conventions
 
 - Preserve the exact wording, spelling, punctuation, and order of prompts in

@@ -33,6 +33,12 @@ The container does not mount host Copilot, Claude, MCP, plugin, skill, or
 credential directories. Authentication and user configuration created inside
 the container are discarded when it is rebuilt.
 
+VS Code can separately share its host Git credential helper with Dev
+Containers. Disable **Dev Containers: Copy Git Config** in your local VS Code
+settings when using this container as an isolated benchmark harness. The
+benchmark runner also removes forwarded tokens, Git askpass variables, and SSH
+agent sockets from each model process.
+
 After the container starts, authenticate interactively as needed:
 
 ```bash
