@@ -129,8 +129,19 @@ treated as removable user configuration.
 
 ## Automated test process
 
-Rebuild the dev container before a clean benchmark series. Authenticate the
-selected CLI inside the container, then run:
+For a completely clean benchmark series:
+
+1. Delete any previous result or `.partial.md` file for the same harness,
+   model, and run number.
+2. In VS Code, run **Dev Containers: Rebuild Container Without Cache**.
+3. Authenticate the selected CLI inside the rebuilt container.
+4. Run the benchmark command below.
+
+Authentication and other container-local state are discarded by the rebuild.
+The repository remains mounted, so committed files and generated result files
+remain available unless you delete them explicitly.
+
+Run GitHub Copilot CLI with:
 
 ```bash
 ./arduino-generation-test/scripts/run-benchmark.sh \
