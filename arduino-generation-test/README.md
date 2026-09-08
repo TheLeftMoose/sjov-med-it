@@ -65,3 +65,39 @@ results/github-custom-agent--model-unknown--run-01.md
 - Do not commit credentials, private system instructions, unrelated repository
   content, or personal data. Describe inaccessible instructions as `Default`
   or `Not available` rather than attempting to extract them.
+
+## GitHub Copilot CLI harness
+
+The PowerShell harness in `scripts/run-copilot-cli.ps1` runs all seven prompts
+through one resumable Copilot CLI session and creates a result file.
+
+Run it from the repository root:
+
+```powershell
+.\arduino-generation-test\scripts\run-copilot-cli.ps1 `
+  -Model "gpt-5.6-sol" `
+  -ReasoningEffort "high"
+```
+
+Use `-RunNumber` when repeating the same model and configuration:
+
+```powershell
+.\arduino-generation-test\scripts\run-copilot-cli.ps1 `
+  -Model "gpt-5.6-sol" `
+  -ReasoningEffort "high" `
+  -RunNumber 2
+```
+
+The harness deliberately:
+
+- Reads the prompts directly from `task.md`.
+- Uses the same Copilot session for every turn.
+- Runs from an ignored, empty working directory.
+- Disables repository custom instructions and built-in MCP servers.
+- Exposes no tools to the model.
+- Disables remote session export.
+- Stops rather than overwriting an existing result unless `-Force` is used.
+
+These settings make this harness a text-only baseline. Runs made with tools,
+repository instructions, custom agents, or other Copilot features should use a
+different harness name and record those features in the result metadata.
