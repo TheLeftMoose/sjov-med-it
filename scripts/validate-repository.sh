@@ -9,6 +9,26 @@ bash -n \
   scripts/validate-repository.sh
 jq empty .devcontainer/devcontainer.json .devcontainer/devcontainer-lock.json
 
+owner_approval_workflow=.github/workflows/approve-owner-pr.yml
+if [[ ! -f $owner_approval_workflow ]]; then
+  echo "Owner approval workflow is missing." >&2
+  exit 1
+fi
+if ! grep -Fxq '  pull_request_target:' "$owner_approval_workflow"; then
+  echo "Owner approval workflow must use pull_request_target." >&2
+  exit 1
+fi
+if ! grep -Fq \
+  "github.event.pull_request.user.login == 'TheLeftMoose'" \
+  "$owner_approval_workflow"; then
+  echo "Owner approval workflow must restrict approvals to TheLeftMoose." >&2
+  exit 1
+fi
+if grep -Eq 'actions/checkout|pull_request\.head|head_ref' "$owner_approval_workflow"; then
+  echo "Owner approval workflow must not access pull-request branch content." >&2
+  exit 1
+fi
+
 for profile in arduino-generation-test/capabilities/profiles/*.json; do
   bash arduino-generation-test/scripts/validate-profile.sh "$profile" >/dev/null
 done

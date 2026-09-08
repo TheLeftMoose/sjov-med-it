@@ -33,3 +33,11 @@ Capability changes must:
 - Use local, pinned, dependency-free implementations where possible.
 - Declare every MCP tool exposed to the model.
 - Pass `scripts/validate-repository.sh` before merge.
+
+## Owner pull-request approval
+
+The `Approve repository owner pull requests` workflow may approve pull requests
+only when GitHub reports the author as `TheLeftMoose`. It uses
+`pull_request_target` so the trusted workflow definition comes from the default
+branch. The workflow must never check out, execute, source, or evaluate content
+from the pull-request branch.
