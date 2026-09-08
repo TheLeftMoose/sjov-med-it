@@ -29,7 +29,10 @@ $resultsDirectory = Join-Path $experimentDirectory "results"
 $sessionId = [guid]::NewGuid().ToString()
 $runId = "copilot-cli--$(ConvertTo-Slug $Model)--run-$($RunNumber.ToString("D2"))"
 $resultPath = Join-Path $resultsDirectory "$runId.md"
-$workDirectory = Join-Path $experimentDirectory ".benchmark-work\$sessionId"
+$isolationRoot = Join-Path $env:LOCALAPPDATA "sjov-med-it\benchmark-work\$sessionId"
+$workDirectory = Join-Path $isolationRoot "workspace"
+$profileDirectory = Join-Path $isolationRoot "profile"
+$copilotHome = Join-Path $profileDirectory ".copilot"
 
 if ((Test-Path $resultPath) -and -not $Force) {
     throw "Result already exists: $resultPath. Use -Force to overwrite it."
@@ -71,8 +74,29 @@ $prompts = foreach ($match in $turnMatches) {
 $prompts = $prompts | Sort-Object Turn
 $copilotVersion = (& copilot --version | Select-Object -First 1).Trim()
 $responses = [System.Collections.Generic.List[object]]::new()
+$savedEnvironment = @{
+    COPILOT_HOME = $env:COPILOT_HOME
+    COPILOT_CUSTOM_INSTRUCTIONS_DIRS = $env:COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+    HOME = $env:HOME
+    USERPROFILE = $env:USERPROFILE
+}
 
-New-Item -ItemType Directory -Force -Path $workDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $workDirectory, $copilotHome | Out-Null
+
+$isolatedConfig = @{
+    memory = $false
+    ide = @{
+        autoConnect = $false
+    }
+    hooks = @{}
+} | ConvertTo-Json -Depth 3
+
+Set-Content -Path (Join-Path $copilotHome "config.json") -Value $isolatedConfig -Encoding utf8
+
+$env:COPILOT_HOME = $copilotHome
+$env:COPILOT_CUSTOM_INSTRUCTIONS_DIRS = ""
+$env:HOME = $profileDirectory
+$env:USERPROFILE = $profileDirectory
 
 try {
     foreach ($prompt in $prompts) {
@@ -126,7 +150,7 @@ try {
     $document.Add("| Model version | Unknown |")
     $document.Add("| Temperature | Unknown |")
     $document.Add("| Reasoning mode | $ReasoningEffort |")
-    $document.Add("| System/custom instructions | Repository instructions disabled |")
+    $document.Add("| System/custom instructions | Repository and personal instructions disabled |")
     $document.Add("| Tools enabled | None |")
     $document.Add("| Skills or subagents enabled | None |")
     $document.Add("| Repository context provided | None |")
@@ -136,8 +160,11 @@ try {
     $document.Add("")
     $document.Add("## Harness notes")
     $document.Add("")
-    $document.Add("Prompts were submitted by `scripts/run-copilot-cli.ps1`. Custom")
-    $document.Add("instructions, tools, built-in MCP servers, and remote export were disabled.")
+    $document.Add("Prompts were submitted by `scripts/run-copilot-cli.ps1` using an")
+    $document.Add("isolated home and Copilot configuration. Repository and personal custom")
+    $document.Add("instructions, personal skills and plugins, user-configured and built-in MCP")
+    $document.Add("servers, hooks, memory, IDE auto-connect, tools, and remote export were")
+    $document.Add("disabled or isolated from the run.")
     $document.Add("")
     $document.Add("## Run notes")
     $document.Add("")
@@ -155,7 +182,16 @@ try {
     Write-Host "Created result: $resultPath"
 }
 finally {
-    if (Test-Path $workDirectory) {
-        Remove-Item -Recurse -Force $workDirectory
+    foreach ($entry in $savedEnvironment.GetEnumerator()) {
+        if ($null -eq $entry.Value) {
+            Remove-Item "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-Item "Env:$($entry.Key)" $entry.Value
+        }
+    }
+
+    if (Test-Path $isolationRoot) {
+        Remove-Item -Recurse -Force $isolationRoot
     }
 }

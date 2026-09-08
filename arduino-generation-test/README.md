@@ -92,8 +92,11 @@ The harness deliberately:
 
 - Reads the prompts directly from `task.md`.
 - Uses the same Copilot session for every turn.
-- Runs from an ignored, empty working directory.
+- Runs from an empty working directory outside the repository.
+- Uses an isolated per-run home and Copilot configuration directory.
 - Disables repository custom instructions and built-in MCP servers.
+- Prevents personal skills, plugins, MCP servers, hooks, memory, and IDE
+  auto-connect settings from being inherited.
 - Exposes no tools to the model.
 - Disables remote session export.
 - Stops rather than overwriting an existing result unless `-Force` is used.
@@ -101,3 +104,25 @@ The harness deliberately:
 These settings make this harness a text-only baseline. Runs made with tools,
 repository instructions, custom agents, or other Copilot features should use a
 different harness name and record those features in the result metadata.
+
+Organization-enforced Copilot policies and the Copilot CLI's own system prompt
+remain part of the harness and cannot be removed by this script.
+
+## Clean CLI environment
+
+The repository-level dev container includes both GitHub Copilot CLI and Claude
+Code without inheriting their host-level configuration. Rebuild the container
+before a clean benchmark series, authenticate each CLI inside the container,
+and run the prompts in a fresh session.
+
+The dev container itself is part of the harness. Record it using a distinct
+harness name, for example:
+
+```text
+copilot-cli-devcontainer--gpt-5-6-sol--run-01.md
+claude-code-devcontainer--claude-sonnet--run-01.md
+```
+
+Built-in system instructions, built-in capabilities, and organization-enforced
+policies remain part of each CLI harness and must be recorded rather than
+treated as removable user configuration.

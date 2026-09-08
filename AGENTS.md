@@ -18,6 +18,31 @@ Treat the model and harness as separate dimensions. The model is the underlying
 language model. The harness is the client, agent, CLI, IDE, or API integration
 that supplies instructions, context, tools, and execution behavior.
 
+## Development container
+
+Use the root `.devcontainer/` configuration for clean CLI benchmark
+environments. It installs GitHub Copilot CLI through the official Dev Container
+Feature and Claude Code through Anthropic's native installer; do not replace
+the Claude installation with its Dev Container Feature because that feature
+uses the public npm registry.
+
+The CLI versions are pinned in `.devcontainer/devcontainer.json` and
+`.devcontainer/Dockerfile`. When changing either version, update the root
+`README.md` and record the exact runtime version in new benchmark results.
+
+The container intentionally does not mount host AI-tool configuration or
+credentials. Do not add mounts for `~/.copilot`, `~/.claude`, `~/.agents`, MCP
+configuration, plugins, skills, SSH keys, or cloud credentials. Authenticate
+inside the container or provide short-lived credentials at runtime without
+committing them.
+
+Verify the installed tools inside the container with:
+
+```bash
+copilot --version
+claude --version
+```
+
 ## Benchmark conventions
 
 - Preserve the exact wording, spelling, punctuation, and order of prompts in

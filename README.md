@@ -18,3 +18,27 @@ reviews.
 - Keep each experiment self-contained.
 - Remove credentials, private repository content, and unrelated personal data
   before committing results.
+
+## Development container
+
+The repository includes a clean dev container with:
+
+- GitHub Copilot CLI `1.0.83`
+- Claude Code `2.1.263`
+
+Open the repository with **Dev Containers: Reopen in Container** in VS Code.
+The CLIs are installed without using the public npm registry.
+
+The container does not mount host Copilot, Claude, MCP, plugin, skill, or
+credential directories. Authentication and user configuration created inside
+the container are discarded when it is rebuilt.
+
+After the container starts, authenticate interactively as needed:
+
+```bash
+copilot
+claude
+```
+
+Do not add tokens to `devcontainer.json`, the Dockerfile, or committed
+environment files.
