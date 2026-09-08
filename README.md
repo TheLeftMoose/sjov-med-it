@@ -58,7 +58,3 @@ The Arduino benchmark includes validated capability profiles for controlled
 skill, plugin, and local MCP comparisons. These capabilities are loaded only
 for the selected benchmark run and are not installed into persistent CLI
 configuration.
-
-Pull requests authored by the repository owner are approved by a narrowly
-scoped GitHub Actions workflow. Pull requests from other contributors still
-require an independent approval.
